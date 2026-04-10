@@ -72,62 +72,21 @@ class BOB_v2_waveform_quantities:
             1 - 2 * nu
         )  # Eq (C7 in https://arxiv.org/pdf/2303.18039)
 
-        # Fit for peak amplitude of the news (2,2) mode
-        chip1 = chi_eob
-        chip2 = chi_eob**2
-        chip3 = chi_eob**3
-        chip4 = chi_eob**4
-        nup1 = nu
-        nup2 = nu**2
-        nup3 = nu**3
-        nup4 = nu**4
+        self.m1 = m1
+        self.m2 = m2
+        self.chi1 = chi1
+        self.chi2 = chi2
+        self.M = M
+        self.nu = nu
+        self.chi_s = chi_s
+        self.chi_a = chi_a
+        self.delta = delta
+        self.chi_eob = chi_eob
 
-        coeff1 = f2r(-0.1690964613229652)
-        coeff2 = f2r(0.0804022444632999)
-        coeff3 = f2r(-0.1636344956438827)
-        coeff4 = f2r(0.0957036572344713)
-        coeff5 = f2r(-8.2209626908806417)
-        coeff6 = f2r(3.5325407860101454)
-        coeff7 = f2r(-0.5562670282104044)
-        coeff8 = f2r(0.1923923251183420)
-        coeff9 = f2r(-1.5773993140208711)
-        coeff10 = f2r(2.6183097662645647)
-        coeff11 = f2r(0.9216415432031680)
-        coeff12 = f2r(0.4715159651693307)
-        coeff13 = f2r(0.4273652956250933)
-        coeff14 = f2r(0.0327224221106050)
-
-        term1 = coeff1 * chip3 * nup1
-        term2 = coeff2 * chip3
-        term3 = coeff3 * chip2 * nup2
-        term4 = coeff4 * chip2
-        term5 = coeff5 * chip1 * nup3
-        term6 = coeff6 * chip1 * nup2
-        term7 = coeff7 * chip1 * nup1
-        term8 = coeff8 * chip1
-        term9 = coeff9 * nup4
-        term10 = coeff10 * nup3
-        term11 = coeff11 * nup2
-        term12 = coeff12 * nup1
-        term13 = coeff13
-        term14 = coeff14 * chip4
-
-        news22NR_Ap = nu * sp.Abs(
-            term1
-            + term2
-            + term3
-            + term4
-            + term5
-            + term6
-            + term7
-            + term8
-            + term9
-            + term10
-            + term11
-            + term12
-            + term13
-            + term14
-        )
+        self.newsNR = {}
+        # Only the (2,2) mode is implemented for BOBv2 right now. But the high mode news amplitude fits are available below
+        self.newsNR["(2 , 2)"] = self.news_Ap_22()
+        news22NR_Ap = self.newsNR["(2 , 2)"]
 
         # Fit for Omega0 for the News (2,2) frequency
         A = f2r(0.33568227)
@@ -206,6 +165,234 @@ class BOB_v2_waveform_quantities:
         self.hddot_t_attach = strain_amp_dderiv.subs(t, t_attach)
         self.w_t_attach = strain_frequency.subs(t, t_attach)
         self.wdot_t_attach = strain_freq_deriv.subs(t, t_attach)
+
+    def news_Ap_22(self) -> sp.Expr:
+        """
+        Peak news amplitude fit for the (2,2) mode.
+
+        :return: Ap_news for the (2,2) mode (sympy expression)
+        """
+        nu = self.nu
+        chi_eob = self.chi_eob
+        return nu * sp.Abs(
+            f2r(-0.1690964613229652) * chi_eob**3 * nu
+            + f2r(0.0804022444632999) * chi_eob**3
+            + f2r(-0.1636344956438827) * chi_eob**2 * nu**2
+            + f2r(0.0957036572344713) * chi_eob**2
+            + f2r(-8.2209626908806417) * chi_eob * nu**3
+            + f2r(3.5325407860101454) * chi_eob * nu**2
+            + f2r(-0.5562670282104044) * chi_eob * nu
+            + f2r(0.1923923251183420) * chi_eob
+            + f2r(-1.5773993140208711) * nu**4
+            + f2r(2.6183097662645647) * nu**3
+            + f2r(0.9216415432031680) * nu**2
+            + f2r(0.4715159651693307) * nu
+            + f2r(0.4273652956250933)
+            + f2r(0.0327224221106050) * chi_eob**4
+        )
+
+    def news_Ap_44(self) -> sp.Expr:
+        """
+        Peak news amplitude fit for the (4,4) mode.
+
+        :return: Ap_news for the (4,4) mode (sympy expression)
+        """
+        nu = self.nu
+        chi_s = self.chi_s
+        chi_a = self.chi_a
+        delta = self.delta
+        cad = chi_a * delta
+        return nu * sp.Abs(
+            f2r(0.0719107382817115)
+            + f2r(4.2714251102339107) * nu
+            + f2r(0.1396698884753976) * cad
+            + f2r(0.0211970728942547) * chi_s
+            + f2r(2903.1233303248659467) * nu**5
+            + f2r(1.9754625362184948) * chi_s * nu
+            + f2r(-2021.8010919869418558) * nu**4
+            + f2r(39.1886106351795505) * chi_s * nu**3
+            + f2r(0.0935679366275437) * chi_s**2
+            + f2r(-0.1096472808214704) * cad**2 * nu**2
+            + f2r(0.0889492950528227) * chi_s * cad
+            + f2r(-17.7239654443563381) * chi_s * nu**2
+            + f2r(-0.5704327212567502) * chi_s**2 * nu
+            + f2r(4.1855358880221187) * chi_s**2 * nu**3
+            + f2r(0.0038031784062489) * chi_s**3
+            + f2r(0.0574617585831314) * chi_a**2
+            + f2r(546.1255161933245290) * nu**3
+            + f2r(-72.5837215029558536) * nu**2
+            + f2r(0.0310815986621801) * chi_s**2 * cad
+            + f2r(-0.2054689578210708) * chi_a**2 * nu
+            + f2r(-0.3129620434936395) * cad * nu
+        )
+
+    def news_Ap_33(self) -> sp.Expr:
+        """
+        Peak news amplitude fit for the (3,3) mode.
+
+        :return: Ap_news for the (3,3) mode (sympy expression); valid for delta > 0.05
+        """
+        nu = self.nu
+        chi_s = self.chi_s
+        chi_a = self.chi_a
+        delta = self.delta
+        return nu * sp.Abs(
+            f2r(0.6384426194909012) * delta * nu
+            + f2r(0.2542952355821977) * delta
+            + f2r(0.1706622629114520) * chi_s * delta
+            + f2r(0.0753264566831321) * chi_a
+            + f2r(-3.4232149668010052) * chi_a * nu**2
+            + f2r(0.1055909587261154) * chi_s**2 * delta
+            + f2r(0.1922377901407913) * chi_a**2
+            + f2r(0.1820724696424940) * chi_s * chi_a * delta
+            + f2r(4.8520577105691292) * delta * nu**3
+            + f2r(-0.7024915881908390) * chi_a**2 * nu
+            + f2r(0.6522794667725517) * chi_a * nu
+            + f2r(-0.0532165822496429) * chi_s * chi_a * nu
+            + f2r(1.4114556049561673) * chi_a**3 * delta
+            + f2r(1.0418686518147002) * chi_s * delta * nu**2
+            + f2r(-1.1769576670699471) * chi_a**3
+            + f2r(4.5922498483270955) * chi_a**3 * nu
+            + f2r(0.1462996887257039) * chi_s**2 * chi_a * delta
+            + f2r(-4.0528225769501720) * chi_a**3 * delta * nu
+            + f2r(-0.0580119688642456) * chi_a**2 * delta
+            + f2r(-2.2787502829429074) * chi_s * delta * nu**3
+        )
+
+    def news_Ap_21(self) -> sp.Expr:
+        """
+        Peak news amplitude fit for the (2,1) mode.
+
+        :return: Ap_news for the (2,1) mode (sympy expression); valid for delta > 0.05
+        """
+        nu = self.nu
+        chi_s = self.chi_s
+        chi_a = self.chi_a
+        delta = self.delta
+        chi21a = chi_s * delta / (1 - f2r(1.3) * nu) + chi_a
+        return nu * sp.Abs(
+            f2r(0.1484235341204765) * delta
+            + f2r(-0.4341177039139482) * chi21a * delta
+            + f2r(-0.1563736030928236) * chi21a**2 * nu
+            + f2r(-0.3945591030310062) * chi_a * nu
+            + f2r(-0.7640682856955867) * chi21a**2 * delta
+            + f2r(-9.0202567299503364) * chi_s * delta * nu**2
+            + f2r(0.8038961066195870) * chi21a**3 * nu
+            + f2r(-0.0836258572886352) * chi21a**3 * delta
+            + f2r(0.0620966200296146) * chi_a**2 * nu
+            + f2r(-0.0155719044439703) * chi_a**2 * delta
+            + f2r(0.1838174243321941) * chi_s * delta * nu
+            + f2r(-4.0913087391425815) * chi_a * nu**2
+            + f2r(0.6661363746524982) * chi21a**2
+            + f2r(0.3254466136701785) * chi21a
+            + f2r(0.0277640055297656) * delta * nu
+            + f2r(-0.0572251308416217) * chi_s**2 * delta * nu
+            + f2r(-0.3500926254975283) * chi21a**4 * nu
+            + f2r(-0.0014720860009937) * chi21a**4 * delta
+            + f2r(-0.0161438168688514) * chi_a**3 * nu
+            + f2r(-6.7691739719733510) * chi21a**2 * nu**2
+            + f2r(-0.7602742077125189) * chi21a**5 * nu
+        )
+
+    def news_Ap_55(self) -> sp.Expr:
+        """
+        Peak news amplitude fit for the (5,5) mode.
+
+        :return: Ap_news for the (5,5) mode (sympy expression); valid for delta > 0.05
+        """
+        nu = self.nu
+        chi_s = self.chi_s
+        chi_a = self.chi_a
+        delta = self.delta
+        return nu * sp.Abs(
+            f2r(0.1313926678) * delta
+            + f2r(0.0693397679) * chi_s * delta
+            + f2r(0.1177465005) * chi_a
+            + f2r(-5.8928702047) * chi_a * nu**3
+            + f2r(-1.0394896698) * chi_a**2 * nu**2
+            + f2r(3.1890531795) * chi_s**2 * delta * nu**2
+            + f2r(0.1078599864) * chi_s * chi_a * delta
+            + f2r(-0.3067283949) * delta * nu
+            + f2r(84.1512722160) * delta * nu**4
+            + f2r(-32.9500900752) * delta * nu**3
+            + f2r(0.0766497896) * chi_a**2
+            + f2r(4.1298677252) * delta * nu**2
+            + f2r(-0.0519665024) * chi_a**2 * delta
+            + f2r(-0.8566261944) * chi_a * nu
+            + f2r(3.1432371074) * chi_a * nu**2
+            + f2r(-1.0569307007) * chi_s**2 * delta * nu
+            + f2r(0.4958660056) * chi_s * delta * nu
+            + f2r(18.7848714086) * chi_s * delta * nu**3
+            + f2r(0.1068696584) * chi_s**2 * delta
+            + f2r(-6.9871345213) * chi_s * delta * nu**2
+            + f2r(-0.3879987253) * chi_s * chi_a * delta * nu
+        )
+
+    def news_Ap_32(self) -> sp.Expr:
+        """
+        Peak news amplitude fit for the (3,2) mode.
+
+        :return: Ap_news for the (3,2) mode (sympy expression)
+        """
+        nu = self.nu
+        chi_s = self.chi_s
+        chi_a = self.chi_a
+        delta = self.delta
+        cad = chi_a * delta
+        return nu * sp.Abs(
+            f2r(0.0577545572673071)
+            + f2r(11.9406845223270235) * cad * nu**3
+            + f2r(17.0580436575595620) * chi_s * nu**2
+            + f2r(109.9438513270014681) * nu**4
+            + f2r(-30.0228076416933121) * nu**3
+            + f2r(-0.1443807511730615) * chi_s**2
+            + f2r(-0.0453626058575554) * cad
+            + f2r(-52.3889618079092614) * chi_s * nu**3
+            + f2r(-1.4284634631896036) * chi_s * nu
+            + f2r(2.8546941351622510) * cad**2 * nu**2
+            + f2r(-0.2271693889602418) * chi_s * cad * nu
+            + f2r(0.3441847817715949) * cad**2 * nu
+            + f2r(0.0089555404141321) * chi_s**3
+            + f2r(0.1472774555772416) * nu
+            + f2r(0.1062807860491596) * chi_s * cad
+            + f2r(0.0950917657779650) * chi_s**2 * cad
+            + f2r(0.1741453741496004) * chi_s * cad**2
+            + f2r(0.1146704472597599) * cad**3
+            + f2r(-4.7385633203438493) * chi_s**2 * nu**2
+            + f2r(1.8285010762094736) * chi_s**2 * nu
+            + f2r(30.4155122363908923) * chi_s * nu**4
+        )
+
+    def news_Ap_43(self) -> sp.Expr:
+        """
+        Peak news amplitude fit for the (4,3) mode.
+
+        :return: Ap_news for the (4,3) mode (sympy expression); valid for delta > 0.05
+        """
+        nu = self.nu
+        chi_s = self.chi_s
+        chi_a = self.chi_a
+        delta = self.delta
+        return nu * sp.Abs(
+            f2r(0.0299884197215471) * delta
+            + f2r(0.0851154731131591) * chi_a**2 * nu
+            + f2r(1.0281190429001357) * chi_s * delta * nu
+            + f2r(17.0363543490113400) * delta * nu**3
+            + f2r(-5.7379134076446610) * delta * nu**2
+            + f2r(0.0035788067699685) * chi_s**2 * delta
+            + f2r(0.3496042267046198) * chi_a**3 * delta * nu
+            + f2r(0.0462878750795055) * chi_s * chi_a * delta
+            + f2r(0.5170339896107963) * delta * nu
+            + f2r(-0.0080442896806339) * chi_a**3
+            + f2r(-0.0087657741673305) * chi_a**3 * delta
+            + f2r(-2.7102795229228880) * chi_s * delta * nu**2
+            + f2r(-0.0695995217823558) * chi_s * delta
+            + f2r(0.0018629241397624) * chi_a
+            + f2r(-0.0629034591329580) * chi_a * nu**2
+            + f2r(0.0569224478624692) * chi_s * chi_a**2 * delta
+            + f2r(0.4590840469943437) * chi_s**2 * delta * nu**2
+            + f2r(0.0397201775916978) * chi_s**2 * chi_a * delta
+        )
 
 
 if __name__ == "__main__":
