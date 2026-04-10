@@ -41,9 +41,7 @@ class BOB_v2_waveform_quantities:
         used in the computation of the BOBv2 waveform. It initializes
         class variables like mass parameters, spin parameters, and various
         coefficients required for the waveform's amplitude and phase.
-        The waveform is currently calculated for the (2,2) mode for the sake of
-        debugging/sanity checks. Higher mode information will be added in an
-        upcoming commit.
+         The waveform construction below still uses only the (2,2) BOB mode. This code stores higher-mode peak-news fits in `self.newsNR` for future use, but only `(2,2)` is consumed downstream in this module.
         The key outputs of the BOB_v2_waveform_quantities class are:
             - 'strain_amp_deriv' : time derivative of the strain amplitude
             - 'h_complex' : complex merger-ringdown strain for the (2,2) mode
@@ -60,7 +58,7 @@ class BOB_v2_waveform_quantities:
 
         M_f, a_f = sp.symbols("M_f a_f", real=True)
         chif = a_f / M_f
-
+        # these values follow the SEOBNRv5 and SXS convention of m1 and chi1 being assigned to the more massive black hole
         # NQC matching parameters
         M = m1 + m2
         nu = m1 * m2 / M**2
@@ -178,6 +176,8 @@ class BOB_v2_waveform_quantities:
         self.w_t_attach = strain_frequency.subs(t, t_attach)
         self.wdot_t_attach = strain_freq_deriv.subs(t, t_attach)
 
+    # The following fits for the peak news amplitude for quasi-circular and nonprecessing systems using the V3 SXS catalog
+    # For higher modes, we only consider cases where the highest and second-highest resolution levels agree for the peak news amplitude within 0.5%
     def news_Ap_22(self) -> None:
         """Peak news amplitude fit for the (2,2) mode."""
         nu = self.nu
@@ -392,9 +392,23 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         print(f"Doctest passed: All {results.attempted} test(s) passed")
-
+    obj = BOB_v2_waveform_quantities()
+    test_dict = obj.__dict__.copy()
+    if "newsNR" in test_dict:
+        del test_dict["newsNR"]
+    test_dict.update(
+        {
+            "news_Ap_22": obj.newsNR["(2 , 2)"],
+            "news_Ap_33": obj.newsNR["(3 , 3)"],
+            "news_Ap_21": obj.newsNR["(2 , 1)"],
+            "news_Ap_44": obj.newsNR["(4 , 4)"],
+            "news_Ap_43": obj.newsNR["(4 , 3)"],
+            "news_Ap_55": obj.newsNR["(5 , 5)"],
+            "news_Ap_32": obj.newsNR["(3 , 2)"],
+        }
+    )
     results_dict = ve.process_dictionary_of_expressions(
-        BOB_v2_waveform_quantities().__dict__,
+        test_dict,
         fixed_mpfs_for_free_symbols=True,
     )
     ve.compare_or_generate_trusted_results(

@@ -1438,9 +1438,51 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         print(f"Doctest passed: All {results.attempted} test(s) passed")
+    obj = SEOBNRv5_aligned_spin_waveform_quantities()
+    test_dict = obj.__dict__.copy()
+    if "rho" in test_dict:
+        del test_dict["rho"]
+    if "fspin" in test_dict:
+        del test_dict["fspin"]
+    if "fspin_limit" in test_dict:
+        del test_dict["fspin_limit"]
+    if "deltalm" in test_dict:
+        del test_dict["deltalm"]
+    if "pn_contribution_f" in test_dict:
+        del test_dict["pn_contribution_f"]
+    for mode_l in range(2, 9):
+        for mode_m in range(1, mode_l + 1):
+            test_dict.update(
+                {f"rho({mode_l} , {mode_m})": obj.rho[f"({mode_l} , {mode_m})"]}
+            )
+    modes_lm = [(2, 1), (4, 3), (5, 5)]
+    for mode in modes_lm:
+        mode_l, mode_m = mode
+        test_dict.update(
+            {
+                f"pn_contribution_f({mode_l} , {mode_m})": obj.pn_contribution_f[
+                    f"({mode_l} , {mode_m})"
+                ]
+            }
+        )
+    for mode_l in range(2, 6):
+        for mode_m in range(mode_l, min(mode_l - 2, 4), -1):
+            test_dict.update(
+                {f"fspin({mode_l} , {mode_m})": obj.fspin[f"({mode_l} , {mode_m})"]}
+            )
+            test_dict.update(
+                {
+                    f"fspin_limit({mode_l} , {mode_m})": obj.fspin_limit[
+                        f"({mode_l} , {mode_m})"
+                    ]
+                }
+            )
+            test_dict.update(
+                {f"deltalm({mode_l} , {mode_m})": obj.deltalm[f"({mode_l} , {mode_m})"]}
+            )
 
     results_dict = ve.process_dictionary_of_expressions(
-        SEOBNRv5_aligned_spin_waveform_quantities().__dict__,
+        test_dict,
         fixed_mpfs_for_free_symbols=True,
     )
     ve.compare_or_generate_trusted_results(
