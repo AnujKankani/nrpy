@@ -84,9 +84,21 @@ class BOB_v2_waveform_quantities:
         self.chi_eob = chi_eob
 
         self.newsNR = {}
-        # Only the (2,2) mode is implemented for BOBv2 right now. But the high mode news amplitude fits are available below
-        self.newsNR["(2 , 2)"] = self.news_Ap_22()
-        news22NR_Ap = self.newsNR["(2 , 2)"]
+        modes = [(2, 2), (3, 3), (2, 1), (4, 4), (4, 3), (5, 5), (3, 2)]
+        for mode in modes:
+            l, m = mode
+            self.newsNR.update({f"({l} , {m})": 0})
+
+        self.news_Ap_22()
+        self.news_Ap_33()
+        self.news_Ap_21()
+        self.news_Ap_44()
+        self.news_Ap_43()
+        self.news_Ap_55()
+        self.news_Ap_32()
+
+        # Only the (2,2) mode is implemented for BOBv2 right now.
+        newsNR_Ap = self.newsNR["(2 , 2)"]
 
         # Fit for Omega0 for the News (2,2) frequency
         A = f2r(0.33568227)
@@ -106,7 +118,7 @@ class BOB_v2_waveform_quantities:
             Omega_minus * sp.tanh(T) / sp.Integer(2) + Omega_plus / sp.Integer(2)
         )
         # Eq. (1) in https://www.arxiv.org/abs/2510.25012
-        Ap = news22NR_Ap / sp.cosh(T)
+        Ap = newsNR_Ap / sp.cosh(T)
 
         # Eq. (13) in https://www.arxiv.org/abs/2510.25012. Because we take t_0 = -infty, the phase has a closed form expression
         Omega_minus_Q = (
@@ -166,15 +178,11 @@ class BOB_v2_waveform_quantities:
         self.w_t_attach = strain_frequency.subs(t, t_attach)
         self.wdot_t_attach = strain_freq_deriv.subs(t, t_attach)
 
-    def news_Ap_22(self) -> sp.Expr:
-        """
-        Peak news amplitude fit for the (2,2) mode.
-
-        :return: Ap_news for the (2,2) mode (sympy expression)
-        """
+    def news_Ap_22(self) -> None:
+        """Peak news amplitude fit for the (2,2) mode."""
         nu = self.nu
         chi_eob = self.chi_eob
-        return nu * sp.Abs(
+        self.newsNR["(2 , 2)"] = nu * sp.Abs(
             f2r(-0.1690964613229652) * chi_eob**3 * nu
             + f2r(0.0804022444632999) * chi_eob**3
             + f2r(-0.1636344956438827) * chi_eob**2 * nu**2
@@ -191,18 +199,14 @@ class BOB_v2_waveform_quantities:
             + f2r(0.0327224221106050) * chi_eob**4
         )
 
-    def news_Ap_44(self) -> sp.Expr:
-        """
-        Peak news amplitude fit for the (4,4) mode.
-
-        :return: Ap_news for the (4,4) mode (sympy expression)
-        """
+    def news_Ap_44(self) -> None:
+        """Peak news amplitude fit for the (4,4) mode."""
         nu = self.nu
         chi_s = self.chi_s
         chi_a = self.chi_a
         delta = self.delta
         cad = chi_a * delta
-        return nu * sp.Abs(
+        self.newsNR["(4 , 4)"] = nu * sp.Abs(
             f2r(0.0719107382817115)
             + f2r(4.2714251102339107) * nu
             + f2r(0.1396698884753976) * cad
@@ -226,17 +230,13 @@ class BOB_v2_waveform_quantities:
             + f2r(-0.3129620434936395) * cad * nu
         )
 
-    def news_Ap_33(self) -> sp.Expr:
-        """
-        Peak news amplitude fit for the (3,3) mode.
-
-        :return: Ap_news for the (3,3) mode (sympy expression); valid for delta > 0.05
-        """
+    def news_Ap_33(self) -> None:
+        """Peak news amplitude fit for the (3,3) mode."""
         nu = self.nu
         chi_s = self.chi_s
         chi_a = self.chi_a
         delta = self.delta
-        return nu * sp.Abs(
+        self.newsNR["(3 , 3)"] = nu * sp.Abs(
             f2r(0.6384426194909012) * delta * nu
             + f2r(0.2542952355821977) * delta
             + f2r(0.1706622629114520) * chi_s * delta
@@ -259,18 +259,14 @@ class BOB_v2_waveform_quantities:
             + f2r(-2.2787502829429074) * chi_s * delta * nu**3
         )
 
-    def news_Ap_21(self) -> sp.Expr:
-        """
-        Peak news amplitude fit for the (2,1) mode.
-
-        :return: Ap_news for the (2,1) mode (sympy expression); valid for delta > 0.05
-        """
+    def news_Ap_21(self) -> None:
+        """Peak news amplitude fit for the (2,1) mode."""
         nu = self.nu
         chi_s = self.chi_s
         chi_a = self.chi_a
         delta = self.delta
         chi21a = chi_s * delta / (1 - f2r(1.3) * nu) + chi_a
-        return nu * sp.Abs(
+        self.newsNR["(2 , 1)"] = nu * sp.Abs(
             f2r(0.1484235341204765) * delta
             + f2r(-0.4341177039139482) * chi21a * delta
             + f2r(-0.1563736030928236) * chi21a**2 * nu
@@ -294,17 +290,13 @@ class BOB_v2_waveform_quantities:
             + f2r(-0.7602742077125189) * chi21a**5 * nu
         )
 
-    def news_Ap_55(self) -> sp.Expr:
-        """
-        Peak news amplitude fit for the (5,5) mode.
-
-        :return: Ap_news for the (5,5) mode (sympy expression); valid for delta > 0.05
-        """
+    def news_Ap_55(self) -> None:
+        """Peak news amplitude fit for the (5,5) mode."""
         nu = self.nu
         chi_s = self.chi_s
         chi_a = self.chi_a
         delta = self.delta
-        return nu * sp.Abs(
+        self.newsNR["(5 , 5)"] = nu * sp.Abs(
             f2r(0.1313926678) * delta
             + f2r(0.0693397679) * chi_s * delta
             + f2r(0.1177465005) * chi_a
@@ -328,18 +320,14 @@ class BOB_v2_waveform_quantities:
             + f2r(-0.3879987253) * chi_s * chi_a * delta * nu
         )
 
-    def news_Ap_32(self) -> sp.Expr:
-        """
-        Peak news amplitude fit for the (3,2) mode.
-
-        :return: Ap_news for the (3,2) mode (sympy expression)
-        """
+    def news_Ap_32(self) -> None:
+        """Peak news amplitude fit for the (3,2) mode."""
         nu = self.nu
         chi_s = self.chi_s
         chi_a = self.chi_a
         delta = self.delta
         cad = chi_a * delta
-        return nu * sp.Abs(
+        self.newsNR["(3 , 2)"] = nu * sp.Abs(
             f2r(0.0577545572673071)
             + f2r(11.9406845223270235) * cad * nu**3
             + f2r(17.0580436575595620) * chi_s * nu**2
@@ -363,17 +351,13 @@ class BOB_v2_waveform_quantities:
             + f2r(30.4155122363908923) * chi_s * nu**4
         )
 
-    def news_Ap_43(self) -> sp.Expr:
-        """
-        Peak news amplitude fit for the (4,3) mode.
-
-        :return: Ap_news for the (4,3) mode (sympy expression); valid for delta > 0.05
-        """
+    def news_Ap_43(self) -> None:
+        """Peak news amplitude fit for the (4,3) mode."""
         nu = self.nu
         chi_s = self.chi_s
         chi_a = self.chi_a
         delta = self.delta
-        return nu * sp.Abs(
+        self.newsNR["(4 , 3)"] = nu * sp.Abs(
             f2r(0.0299884197215471) * delta
             + f2r(0.0851154731131591) * chi_a**2 * nu
             + f2r(1.0281190429001357) * chi_s * delta * nu
