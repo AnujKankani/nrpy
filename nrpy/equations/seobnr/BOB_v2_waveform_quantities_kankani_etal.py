@@ -41,8 +41,10 @@ class BOB_v2_waveform_quantities:
         used in the computation of the BOBv2 waveform. It initializes
         class variables like mass parameters, spin parameters, and various
         coefficients required for the waveform's amplitude and phase.
-         The waveform construction below still uses only the (2,2) BOB mode. This code stores higher-mode peak-news fits in `self.newsNR` for future use, but only `(2,2)` is consumed downstream in this module.
+        The waveform construction below still uses only the (2,2) BOB mode.
+        This code stores higher-mode peak-news fits in `self.newsNR` for future use, but only `(2,2)` is consumed downstream in this module.
         The key outputs of the BOB_v2_waveform_quantities class are:
+            - `newsNR[(l,m)]` for the stored peak-news fits
             - 'strain_amp_deriv' : time derivative of the strain amplitude
             - 'h_complex' : complex merger-ringdown strain for the (2,2) mode
             - 'h_t_attach' : the strain amplitude of the BOB merger-ringdown strain for the (l=2,m=2) mode at t_attach
@@ -58,7 +60,7 @@ class BOB_v2_waveform_quantities:
 
         M_f, a_f = sp.symbols("M_f a_f", real=True)
         chif = a_f / M_f
-        # these values follow the SEOBNRv5 and SXS convention of m1 and chi1 being assigned to the more massive black hole
+        # these values follow the SEOBNRv5 convention for m1, chi1, m2, chi2 assigment.
         # NQC matching parameters
         M = m1 + m2
         nu = m1 * m2 / M**2
@@ -178,25 +180,27 @@ class BOB_v2_waveform_quantities:
 
     # The following fits for the peak news amplitude for quasi-circular and nonprecessing systems using the V3 SXS catalog
     # For higher modes, we only consider cases where the highest and second-highest resolution levels agree for the peak news amplitude within 0.5%
+    # For odd modes we only use cases where delta = (m1-m2)/M > 0.05
+    # A list of simulations can be found in tests/BOB_v2_fit_sim_list.md
     def news_Ap_22(self) -> None:
         """Peak news amplitude fit for the (2,2) mode."""
         nu = self.nu
         chi_eob = self.chi_eob
         self.newsNR["(2 , 2)"] = nu * sp.Abs(
-            f2r(-0.1690964613229652) * chi_eob**3 * nu
-            + f2r(0.0804022444632999) * chi_eob**3
-            + f2r(-0.1636344956438827) * chi_eob**2 * nu**2
-            + f2r(0.0957036572344713) * chi_eob**2
-            + f2r(-8.2209626908806417) * chi_eob * nu**3
-            + f2r(3.5325407860101454) * chi_eob * nu**2
-            + f2r(-0.5562670282104044) * chi_eob * nu
-            + f2r(0.1923923251183420) * chi_eob
-            + f2r(-1.5773993140208711) * nu**4
-            + f2r(2.6183097662645647) * nu**3
-            + f2r(0.9216415432031680) * nu**2
-            + f2r(0.4715159651693307) * nu
-            + f2r(0.4273652956250933)
-            + f2r(0.0327224221106050) * chi_eob**4
+            f2r(-0.2099758179309237) * chi_eob**3 * nu
+            + f2r(0.0898134166069989) * chi_eob**3
+            + f2r(-0.5250725154653605) * chi_eob**2 * nu**2
+            + f2r(0.0816049306512471) * chi_eob**2
+            + f2r(-12.0901691532595219) * chi_eob * nu**3
+            + f2r(5.4706706511122052) * chi_eob * nu**2
+            + f2r(-0.8396428499197531) * chi_eob * nu
+            + f2r(0.2023493896580952) * chi_eob
+            + f2r(-2.2883509124802992) * nu**4
+            + f2r(3.1136105962828000) * nu**3
+            + f2r(0.8560341070995979) * nu**2
+            + f2r(0.4641563023784367) * nu
+            + f2r(0.4287100151978567)
+            + f2r(0.0368066872502243) * chi_eob**4
         )
 
     def news_Ap_44(self) -> None:
