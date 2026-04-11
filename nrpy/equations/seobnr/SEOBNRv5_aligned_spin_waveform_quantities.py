@@ -103,6 +103,11 @@ class SEOBNRv5_aligned_spin_waveform_quantities:
                 self.deltalm.update({f"({l} , {m})": 0})
                 self.fspin.update({f"({l} , {m})": 0})
                 self.fspin_limit.update({f"({l} , {m})": 0})
+        # additional m = 1 modes that are assigned values below
+        additional_modes = [(3, 1), (4, 1)]
+        for mode in additional_modes:
+            l, m = mode
+            self.fspin.update({f"({l} , {m})": 0})
         M = m1 + m2
         self.nu = m1 * m2 / (M**2)
         self.delta = (m1 - m2) / M
@@ -1480,6 +1485,19 @@ if __name__ == "__main__":
             test_dict.update(
                 {f"deltalm({mode_l} , {mode_m})": obj.deltalm[f"({mode_l} , {mode_m})"]}
             )
+    additional_modes_lm = [(3, 1), (4, 1)]
+    for mode in additional_modes_lm:
+        mode_l, mode_m = mode
+        test_dict.update(
+            {f"fspin({mode_l} , {mode_m})": obj.fspin[f"({mode_l} , {mode_m})"]}
+        )
+        test_dict.update(
+            {
+                f"fspin_limit({mode_l} , {mode_m})": obj.fspin_limit[
+                    f"({mode_l} , {mode_m})"
+                ]
+            }
+        )
 
     results_dict = ve.process_dictionary_of_expressions(
         test_dict,

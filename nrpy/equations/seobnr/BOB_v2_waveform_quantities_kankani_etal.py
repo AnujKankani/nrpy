@@ -44,7 +44,7 @@ class BOB_v2_waveform_quantities:
         The waveform construction below still uses only the (2,2) BOB mode.
         This code stores higher-mode peak-news fits in `self.newsNR` for future use, but only `(2,2)` is consumed downstream in this module.
         The key outputs of the BOB_v2_waveform_quantities class are:
-            - `newsNR[(l,m)]` for the stored peak-news fits
+            - `newsNR["(l,m)"]` for the stored peak-news fits
             - 'strain_amp_deriv' : time derivative of the strain amplitude
             - 'h_complex' : complex merger-ringdown strain for the (2,2) mode
             - 'h_t_attach' : the strain amplitude of the BOB merger-ringdown strain for the (l=2,m=2) mode at t_attach
